@@ -5,32 +5,87 @@
 # Y-Enterprise
 
 import tensorflow as tf
-from tensorflow import keras
+from tensorflow.keras.layers import Dense, Flatten, Conv2D
+from tensorflow.keras import Model
 
 import numpy as np
 
-fashion_mnist = keras.datasets.fashion_mnist
+fashion_mnist = tf.keras.datasets.fashion_mnist
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 
-# Define a network with no hidden layers
-# placeholder for input variables x
-x = tf.placeholder(tf.float32, [None, 784])
+# 打乱数组顺序
+# 指定随机梯度下降的batch大小
+train_ds = tf.data.Dataset.from_tensor_slices(
+    (x_train, y_train)).shuffle(10000).batch(32)
+test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
 
-# Variable for trainable variables
-# zeros for initial value
-w = tf.Variable(tf.zeros([784, 10]))
+# 子类化训练
+class MyModel(Model):
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.flatten = Flatten()
+    self.d1 = Dense(128, activation='relu')
+    self.d2 = Dense(32, activation='relu')
+    self.d3 = Dense(10, activation='softmax')
 
-# bias variable
-b = tf.Variable(tf.zeros([10]))
+  def call(self, x):
+    x = self.flatten(x)
+    x = self.d1(x)
+    x = self.d2(x)
+    return self.d3(x)
 
-# linear combinition first, matrix 
-y = tf.nn.softmax(tf.matmul(x,w) + b)
+model = MyModel()
 
-# placeholder for labels
-label = tf.placeholder(tf.float32, [None, 10])
+loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
+optimizer = tf.keras.optimizers.Adam()
 
-train = 
+train_loss = tf.keras.metrics.Mean(name='train_loss')
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
 
-print(x_train.shape)
-print(y_train.shape)
-print(y_train)
+test_loss = tf.keras.metrics.Mean(name='test_loss')
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='test_accuracy')
+
+@tf.function
+def train_step(images, labels):
+    with tf.GradientTape() as tape:
+        predictions = model(images)
+        loss = loss_object(labels, predictions)
+    gradients = tape.gradient(loss, model.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+    train_loss(loss)
+    train_accuracy(labels, predictions)
+
+@tf.function
+def test_step(images, labels):
+    predictions = model(images)
+    t_loss = loss_object(labels, predictions)
+
+    test_loss(t_loss)
+    test_accuracy(labels, predictions)
+
+EPOCHS = 10
+
+# EPOCH: 对所有样本完成一次训练  
+# BATCH: 取一个batch进行反向传播随机梯度下降  
+for epoch in range(EPOCHS):
+    # 在下一个epoch开始时，重置评估指标
+    train_loss.reset_states()
+    train_accuracy.reset_states()
+    test_loss.reset_states()
+    test_accuracy.reset_states()
+
+    for images, labels in train_ds:
+        train_step(images, labels)
+
+    for test_images, test_labels in test_ds:
+        test_step(test_images, test_labels)
+
+    template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
+    print (template.format(epoch+1,
+                         train_loss.result(),
+                         train_accuracy.result()*100,
+                         test_loss.result(),
+                         test_accuracy.result()*100))
+
+
