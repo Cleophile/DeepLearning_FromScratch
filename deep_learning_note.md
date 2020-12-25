@@ -16,12 +16,26 @@ Important initialize all weights to zero or small positive values
 ### Loss Function
 #### Maximum Likelihood 
 Definition:
-$$ J(\theta) = -\mathbb{E} (log(p(x|y))) $$
+$$ J(\theta) = -\mathbb{E}_p (log(p(x|y))) $$
+
+积分形式
 
 Cross Entropy: Same as the maximum likelihood
+$$ -\sum_{i} p(x) log(q(x)) $$
+
+Where $p(x)$ is the true probability, and $q(x)$ is the predicted probability
 
 Advantage:
 - Well defined loss function as long as distribution $P$ is defined
 
 Disadvantage:
 - Can derive unlimited reward in some cases (Behaves like logistic)
+
+### Practice with TensorFlow
+Details in `feedforward_keras.py`
+
+`feedforward_keras.py`:
+- 设计网络类
+- 选择损失函数和优化器
+- 设计训练流程和测试流程
+- 循环训练和测试
