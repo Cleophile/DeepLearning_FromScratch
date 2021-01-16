@@ -39,3 +39,22 @@ Details in `feedforward_keras.py`
 - 选择损失函数和优化器
 - 设计训练流程和测试流程
 - 循环训练和测试
+
+## CNN
+Convolutional networks are simply neural networks that use convolution in place of general matrixmultiplication in at least one of their layers  
+
+### Convolution
+Motivation of convolution: weighted average that gives more weight to recent measurements  
+- input
+- kernel
+
+CNN convolution layer:
+- sparse interactions: sparse matrixed
+- parameter sharing
+- equivariant representations
+
+### Pooling
+
+A pooling function replaces the output of the net at a certain location with asummary statistic of the nearby outputs.  
+Invariance to translation means that if wetranslate the input by a small amount, the values of most of the pooled outputsdo not change.  
+
