@@ -1,17 +1,21 @@
 # Deep Learning
+## Goal of Learning
+
+![](./pic/171608730810_.pic.jpg)
+
 ## Introduction
-- We can think of each application of a different mathematical function as providing a new representation of the input
-- Depth enables the computer to learn multistep computer program
+- We can think of each application of a different mathematical function as providing a new representation of the input  
+- Depth enables the computer to learn multistep computer program; later instructions can refer back to the results of earlier instructions  
 
 ## Feedforward network
-- No recurrence of the signals
-- Like a human neuron
-- but are designed to achieve statistical generalization
-- visible layer -> hidden layers -> output layer
+- No recurrence of the signals  
+- Like a human neuron  
+- but are designed to achieve statistical generalization  
+- visible layer -> hidden layers -> output layer  
 
-Gradient decent algorithm for feedforward network:
-Non-convex
-Important initialize all weights to zero or small positive values
+Gradient decent algorithm for feedforward network:  
+- Non-convex, thus what we get is usually a local minimum  
+- Important initialize all weights to zero or small positive values  
 
 ### Loss Function
 #### Maximum Likelihood 
@@ -37,7 +41,44 @@ Advantage:
 Disadvantage:
 - Can derive unlimited reward in some cases (Behaves like logistic)  
 
+#### Why not square functions in classification:
 
+Non-convex issues:
+
+![](./pic/non_convex_square.jpg)
+
+If applied not in classification but linear outputs, the log-likelihood is the same as minimizing the mean square:
+
+$$ y \sim \frac{1}{\sqrt{2\pi}} e^{-\frac{(y-\hat{y})^2}{2 \sigma^2}} $$
+
+Both in one-hot coding cross entropy and negative log-likelihood:
+
+$$ -log(p(y)) = c + \frac{(y-\hat{y})^2}{2 \sigma^2} $$
+
+### Output function
+
+The following functions all based on the same assumption, that the log of distribution is linear to its elements.
+
+#### Sigmoid Function, for 0-1 results
+
+$$ \sigma(x) = \frac{1}{1+e^{-x}} = \frac{e^x}{1+e^x} $$
+
+Recall SoftPlus Function: $\zeta(x)=log(1+e^x)$, which smoothens $x^+ = max\{0,x\}$
+$$ J(\theta) = -log(\sigma(x)) = \zeta(-x) $$
+
+This would amplify the gradient when x is of the wrong sign.  
+However, if this is used in a mean-square error, from the graph of the sigmoid function, the gradient would become very small.  
+
+#### Softmax Function, for multiple class
+
+A generalized Sigmoid function:
+$$ softmax(\vec{z})_i = \frac{e^{z_i}}{\sum_j e^{z_j}} $$
+
+Sigmoid is the same as logistic regression, and the output can be viewed as multiple independent 0-1 classification missions.
+
+Softmax is used when the multiple dimensions are mutual exclusive. $\sum w_i = 1$
+
+$$ J(\theta) = -log(softmax(\vec{z})_i) = - z_i + log(\sum_j e^{z_j}) $$
 
 ### Practice with TensorFlow
 Details in `feedforward_keras.py`
@@ -82,6 +123,6 @@ CNN convolution layer:
 
 ### Pooling
 
-A pooling function replaces the output of the net at a certain location with asummary statistic of the nearby outputs.  
+A pooling function replaces the output of the net at a certain location with a summary statistic of the nearby outputs.  
 Invariance to translation means that if wetranslate the input by a small amount, the values of most of the pooled outputsdo not change.  
 
