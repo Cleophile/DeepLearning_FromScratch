@@ -3,10 +3,12 @@
 
 ![](./pic/171608730810_.pic.jpg)
 
+----
 ## Introduction
 - We can think of each application of a different mathematical function as providing a new representation of the input  
 - Depth enables the computer to learn multistep computer program; later instructions can refer back to the results of earlier instructions  
 
+----
 ## Feedforward network
 - No recurrence of the signals  
 - Like a human neuron  
@@ -159,7 +161,9 @@ Details in `feedforward_keras.py`
 
 ### Universal approximation theorem
 
-A feedforward network with a linear output layer and at least one hidden layer with any "squashing" activation function (such as the logistic sigmoid activation function) can approximate any Borel measurablefunction from one finite-dimensional space to another with any desired non-zero amount of error, provided that the network is given enough hidden units.
+A feedforward network with a linear output layer and at least one hidden layer with any "squashing" activation function (such as the logistic sigmoid activation function) can approximate any Borel measurable function from one finite-dimensional space to another with any desired non-zero amount of error, provided that the network is given enough hidden units.
+
+However, for a function representated by a $d$ layer neural network, it may take exponential hidden units if representated by a shallow neural network.  
 
 `feedforward_keras.py`:
 - 设计网络类
@@ -167,14 +171,107 @@ A feedforward network with a linear output layer and at least one hidden layer w
 - 设计训练流程和测试流程
 - 循环训练和测试
 
+----
+## Back propagation
+
+Object: to find the gradient:
+
+$$ \nabla_{\theta} J(\theta) $$
+
+#### Chain rule of calculus
+
+For function: $z = f(y) = f(g(x))$
+
+$$ \nabla_x z = (\frac{\partial y}{\partial x})^T \nabla_y z $$
+
+where $\frac{\partial y}{\partial x}$ is the Jacobian matrix  
+
+#### Feed Forward
+
+Input: $\vec{x_0}$  
+Output Layer: $\hat{y} = \vec{x}_n$  
+Objective Function: $L = L(\vec{x}_n)$  
+
+Iteration:
+
+$$ \vec{x}_{i} = f_i(\vec{x}_{i-1}, \vec{\theta}_i) $$
+
+#### Back propagation
+
+Given $\nabla_{\vec{x}_i}L$ and $f_i(\vec{x}_{i-1}, \vec{\theta}_i) = \vec{x}_i$
+
+We first compute the desired $\nabla_{\vec{x}_{i-1}}L$ for the next layer:
+
+$$\frac{\partial L}{\partial \vec{x}_{i-1}^j} = \sum_k \frac{\partial L}{\partial \vec{x}_{i}^k} \frac{\partial \vec{x}_{i}^k}{\partial \vec{x}_{i-1}^j} $$
+
+If $f_i(\vec{x}_{i-1}) = \mathbf{W}\vec{x}_{i-1} + \vec{b}$:
+
+$$ \vec{x}_i^k = \sum_l \mathbf{W}_{kl} \vec{x}_{i-1}^l + \vec{b}^k $$
+
+$$ \frac{\partial x_i^k}{\partial x_{i-1}^j} = \mathbf{W}_{kj} $$
+
+$$ \nabla_{\vec{x}_{i-1}} L = \mathbf{W}^T \nabla_{\vec{x}_{i}} L $$
+
+If $f_i$ is contributed by pieces of scaler to scaler functions:  
+Denote $f^{\prime}_i (\vec{x}_{i-1}) = [\frac{d f^1_i(\vec{x}_{i-1}^1)}{\vec{x}_{i-1}^1},\frac{d f^2_i(\vec{x}_{i-1}^2)}{\vec{x}_{i-1}^2},...,\frac{d f^m_i(\vec{x}_{i-1}^m)}{\vec{x}_{i-1}^m} ]^T$
+
+$$ \nabla_{\vec{x}_{i-1}} L = \nabla_{\vec{x}_{i}} L * f^{\prime}_i(\vec{x}_{i-1}) $$
+
+Now compute the partial over parameters: $\nabla_{\vec{\theta}_{i}}L$.  
+Notice that $\theta$ is not necessarily a vector, but can also be a matrix or a scaler. Thus, we treat $\theta$ as a tensor.  
+
+$$ \frac{\partial L}{\partial \vec{\theta}^j_i} = \sum_k \frac{\partial L}{\partial \vec{x}_i^k}\frac{\partial \vec{x}_i^k}{\partial \vec{\theta}^j_i} $$
+
+If $f_i(\vec{x}_{i-1}) = \mathbf{W}\vec{x}_{i-1} + \vec{b}$:
+
+$$ \frac{\partial L}{\partial \vec{b}_i^j} = \sum_k \frac{\partial L}{\partial \vec{x}_i^k}\frac{\partial \vec{x}_i^k}{\partial \vec{b}^j_i} $$
+
+Notice that $\frac{\partial \vec{x}_i^k}{\partial \vec{b}^j_i}$ is 0 if $j \neq k$, and is 1 if $j=k$
+
+$$ \frac{\partial L}{\partial \vec{b}_i^j} = \frac{\partial L}{\partial \vec{x}_i^j} $$
+
+$$ \nabla_{\vec{b}_i} L = \nabla_{\vec{x}_i} L $$
+
+$$ \frac{\partial L}{\partial \mathbf{W}_{jk}} = \sum_m \frac{\partial L}{\partial \vec{x}_i^m}\frac{\partial \vec{x}_i^m}{\partial \mathbf{W}_{jk}} $$
+
+$$ \vec{x}_i^m = \sum_l \mathbf{W}_{ml} \vec{x}_{i-1}^l $$
+
+Only when $m=j$ and $l=k$, $\frac{\partial \vec{x}_i^m}{\partial \mathbf{W}_{jk}}$ is not zero, and is $\vec{x}_{i-1}^k$
+
+$$ \frac{\partial L}{\partial \mathbf{W}_{jk}} =  \frac{\partial L}{\partial \vec{x}_{i}^j} \vec{x}_{i-1}^k $$
+
+Gradient matrix for tensor $\mathbf{W}$ is:
+
+$$ \nabla_{\mathbf{W}} L = \nabla_{\vec{x}_i} L \vec{x}^T_{i-1} $$
+
+----
+## Project: Implement back propagation
+
+### Data Structures
+
+1. Activation functions  
+- Virual Classes: Input vector, output vector  
+- Function itself  
+- Derivative function  
+- Functions:  
+- Linear, ReLU, Sigmoid, tanh  
+
+A layer of dense neural network:
+
+A map of dense layers:
+
+#### Symbol to symbol approach
+
+1. Input a computational graph of nodes or layers
+2. Insert additional nodes of derivatives onto the original graph
+
+----
 ## Optimization of Neural Networks
 
 ### 0-1 loss and log-p
 
 Even when the 0-1 loss is zero, like when the possibility of the correct element is already the largest, there are still rooms for improvement.  
 Log-p and cross-entropy:
-
-
 
 ### Stopping Criteria
 
@@ -185,9 +282,9 @@ Notice that not necessarily when the gradient turns zero.
 
 Used in the random gradient descent: use a small portion of the dataset and
 
-
+----
 ## CNN
-Convolutional networks are simply neural networks that use convolution in place of general matrixmultiplication in at least one of their layers  
+Convolutional networks are simply neural networks that use convolution in place of general matrix multiplication in at least one of their layers  
 
 ### Convolution
 Motivation of convolution: weighted average that gives more weight to recent measurements  
@@ -202,5 +299,4 @@ CNN convolution layer:
 ### Pooling
 
 A pooling function replaces the output of the net at a certain location with a summary statistic of the nearby outputs.  
-Invariance to translation means that if wetranslate the input by a small amount, the values of most of the pooled outputsdo not change.  
-
+Invariance to translation means that if we translate the input by a small amount, the values of most of the pooled outputs do not change.  
