@@ -1,5 +1,9 @@
 # Deep Learning
-## Goal of Learning
+[[TOC]]
+
+## Final Goal
+
+What they are, when they are used, how they are coded and how they are computed:
 
 ![](./pic/171608730810_.pic.jpg)
 
@@ -172,7 +176,7 @@ However, for a function representated by a $d$ layer neural network, it may take
 - 循环训练和测试
 
 ----
-## Back propagation
+## Train the network
 
 Object: to find the gradient:
 
@@ -244,8 +248,12 @@ Gradient matrix for tensor $\mathbf{W}$ is:
 
 $$ \nabla_{\mathbf{W}} L = \nabla_{\vec{x}_i} L \vec{x}^T_{i-1} $$
 
+## Regularization
+
+Definition: Any modification we make to a learning algorithm that is intended to reduce its generalization error but not its training error.
+
 ----
-## Project: Implement back propagation
+## Project: Implement general back propagation
 
 ### Data Structures
 
@@ -255,10 +263,31 @@ $$ \nabla_{\mathbf{W}} L = \nabla_{\vec{x}_i} L \vec{x}^T_{i-1} $$
 - Derivative function  
 - Functions:  
 - Linear, ReLU, Sigmoid, tanh  
+- Plus, minus, mul, matmul, ...
 
-A layer of dense neural network:
+2. Computational Graph
 
-A map of dense layers:
+链表存储Node，每个node存储指向下一个节点和上一个节点的指针  
+
+- Node
+
+Methods:  
+get_operation: return the function of how the value of this node is computed  
+get_parents: return the parents in feed forward  
+get_children: return the children in the feed forward  
+
+3. Grad Table
+
+4. Algorithm of back propagation
+
+在grad table中置$\frac{\partial z}{\partial z} = 1$，for each node $N$ in the graph, run `get_gradient(N)`  
+
+`get_gradient(N)`方法：  
+For each parent node $P$  
+----Run `get_gradient(P)` recursively until all gradient of the children nodes are known.  
+----Get the derivative of the function to get $N$, like $\nabla_P C$  
+----Calculate the gradient calculated by this node  
+Sum up all gradient calculated by each node and insert into the grad table.  
 
 #### Symbol to symbol approach
 
